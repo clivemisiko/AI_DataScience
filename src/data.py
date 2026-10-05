@@ -45,3 +45,4 @@ def get_stratified_split(X, y, protected, test_size=0.2, random_state=42):
     return train_test_split(
         X, y, protected, test_size=test_size, stratify=y, random_state=random_state
     )
+
