@@ -104,3 +104,4 @@ def test_threshold_tuning_impact(dataset):
 
     assert scores_high_recall["recall"] > scores_default["recall"]
     assert scores_high_recall["precision"] < scores_default["precision"]
+

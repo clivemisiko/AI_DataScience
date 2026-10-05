@@ -95,3 +95,4 @@ def evaluate_model(model, X, y, threshold: float = 0.5) -> dict:
         "recall": float(recall_score(y, pred)),
         "brier_score": float(brier_score_loss(y, prob)),
     }
+

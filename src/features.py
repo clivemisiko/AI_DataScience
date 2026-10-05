@@ -21,3 +21,4 @@ def add_engineered_features(X: pd.DataFrame) -> pd.DataFrame:
     ).astype(str)
     X_out["edu_x_hours"] = X_out["education_num"] * X_out["hours_per_week"]
     return X_out
+
