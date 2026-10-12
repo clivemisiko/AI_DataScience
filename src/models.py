@@ -82,8 +82,62 @@ def create_core_xgboost_model(
     return Pipeline([("preprocess", preprocess), ("model", model)])
 
 
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+    log_loss,
+    precision_score,
+    recall_score,
+    brier_score_loss,
+    confusion_matrix
+)
+
+
+def create_calibrated_model(
+    base_pipeline: Pipeline,
+    method: str = "isotonic",
+    cv: int = 5
+) -> CalibratedClassifierCV:
+    """
+    Wrap an existing pipeline with CalibratedClassifierCV to calibrate posterior probabilities.
+    method can be 'isotonic' (non-parametric) or 'sigmoid' (Platt scaling).
+    """
+    return CalibratedClassifierCV(estimator=base_pipeline, method=method, cv=cv)
+
+
+def find_optimal_threshold(
+    y_true: np.ndarray,
+    probabilities: np.ndarray,
+    metric: str = "f1"
+) -> tuple[float, float]:
+    """
+    Search thresholds from 0.05 to 0.95 with step 0.01 to find optimal score.
+    Returns: (best_threshold, best_score)
+    """
+    best_threshold = 0.5
+    best_score = -1.0
+
+    for thresh in np.arange(0.05, 0.95, 0.01):
+        preds = (probabilities >= thresh).astype(int)
+        if metric == "f1":
+            score = f1_score(y_true, preds)
+        elif metric == "balanced_accuracy":
+            score = accuracy_score(y_true, preds)
+        else:
+            score = f1_score(y_true, preds)
+
+        if score > best_score:
+            best_score = score
+            best_threshold = float(thresh)
+
+    return round(best_threshold, 2), round(best_score, 4)
+
+
 def evaluate_model(model, X, y, threshold: float = 0.5) -> dict:
-    """Compute comprehensive performance metrics."""
+    """Compute comprehensive performance metrics including calibration sharpness and PR-AUC."""
     prob = model.predict_proba(X)[:, 1]
     pred = (prob >= threshold).astype(int)
 
@@ -91,8 +145,11 @@ def evaluate_model(model, X, y, threshold: float = 0.5) -> dict:
         "accuracy": float(accuracy_score(y, pred)),
         "f1": float(f1_score(y, pred)),
         "roc_auc": float(roc_auc_score(y, prob)),
+        "pr_auc": float(average_precision_score(y, prob)),
         "precision": float(precision_score(y, pred, zero_division=0)),
         "recall": float(recall_score(y, pred)),
         "brier_score": float(brier_score_loss(y, prob)),
+        "log_loss": float(log_loss(y, prob)),
     }
+
 
