@@ -105,3 +105,37 @@ def test_threshold_tuning_impact(dataset):
     assert scores_high_recall["recall"] > scores_default["recall"]
     assert scores_high_recall["precision"] < scores_default["precision"]
 
+
+def test_calibrated_model_pipeline(dataset):
+    """M2.3 Test: Verify CalibratedClassifierCV fits cleanly and improves or maintains Brier score."""
+    from src.models import create_calibrated_model
+
+    base_pipe = create_core_xgboost_model(dataset["X_train_fe"], random_state=42)
+    cal_model = create_calibrated_model(base_pipe, method="isotonic", cv=3)
+    cal_model.fit(dataset["X_train_fe"], dataset["y_train"])
+
+    scores = evaluate_model(cal_model, dataset["X_test_fe"], dataset["y_test"], threshold=0.5)
+
+    assert scores["brier_score"] < 0.090, f"Expected Brier score < 0.090, got {scores['brier_score']:.4f}"
+    assert scores["log_loss"] < 0.300, f"Expected Log loss < 0.300, got {scores['log_loss']:.4f}"
+    assert scores["f1"] >= 0.720, f"Expected F1 >= 0.720, got {scores['f1']:.4f}"
+
+
+def test_optimal_threshold_search(dataset):
+    """M2.3 Test: Verify finding and applying the optimal decision threshold yields peak F1 and high recall."""
+    from src.models import create_calibrated_model, find_optimal_threshold
+
+    base_pipe = create_core_xgboost_model(dataset["X_train_fe"], random_state=42)
+    cal_model = create_calibrated_model(base_pipe, method="isotonic", cv=3)
+    cal_model.fit(dataset["X_train_fe"], dataset["y_train"])
+
+    test_probs = cal_model.predict_proba(dataset["X_test_fe"])[:, 1]
+    best_thresh, best_f1 = find_optimal_threshold(dataset["y_test"], test_probs, metric="f1")
+
+    assert 0.30 <= best_thresh <= 0.40, f"Expected optimal threshold in [0.30, 0.40], got {best_thresh}"
+    assert best_f1 >= 0.740, f"Expected optimal F1 >= 0.740, got {best_f1}"
+
+    scores_tuned = evaluate_model(cal_model, dataset["X_test_fe"], dataset["y_test"], threshold=best_thresh)
+    assert scores_tuned["recall"] >= 0.750, f"Expected recall >= 0.750, got {scores_tuned['recall']:.4f}"
+
+
