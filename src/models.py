@@ -2,21 +2,24 @@
 
 import numpy as np
 import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    confusion_matrix,
     f1_score,
-    roc_auc_score,
+    log_loss,
     precision_score,
     recall_score,
-    brier_score_loss,
-    confusion_matrix
+    roc_auc_score,
 )
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from xgboost import XGBClassifier
 
 
 def get_preprocessor(X: pd.DataFrame, scale_numeric: bool = True):
@@ -82,18 +85,6 @@ def create_core_xgboost_model(
     return Pipeline([("preprocess", preprocess), ("model", model)])
 
 
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    roc_auc_score,
-    average_precision_score,
-    log_loss,
-    precision_score,
-    recall_score,
-    brier_score_loss,
-    confusion_matrix
-)
 
 
 def create_calibrated_model(
