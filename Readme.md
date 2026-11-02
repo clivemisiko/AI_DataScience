@@ -165,3 +165,35 @@ The test suite is explicitly designed to catch non-trivial, silent machine learn
 
 ### Q: Why isolate protected attributes (`sex`, `race`) instead of feeding them to XGBoost?
 > **Answer:** Direct inclusion of demographic attributes can encode historical census and wage disparities directly into the tree splits. We intentionally strip `sex` and `race` from the training matrix and maintain them in a segregated auditing container (`prot_train`, `prot_test`) to verify equal opportunity and false negative rates across groups without allowing the model to make direct demographic determinations.
+
+---
+
+## Track L: Experiment Tracking and Deployment
+
+The Track L workflow logs three non-duplicate runs to a local MLflow SQLite store. Each run records its model configuration, fixed data split size, decision threshold, ROC-AUC, F1, accuracy, evaluation JSON artifact, and serialized MLflow model artifact.
+
+```powershell
+# Recreate the three runs and the deployable bundle
+python -m src.mlops
+
+# Launch the MLflow UI
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+Open `http://127.0.0.1:5000`, select `adult-income-capstone`, and compare the runs named `baseline_logistic`, `random_forest`, and `calibrated_xgboost`. The reproducible comparison is also exported as [track_l_runs_export.csv](track_l_runs_export.csv).
+
+The production model is packaged at runtime in `mlops_artifacts/production_model.joblib` with its threshold in `mlops_artifacts/threshold.json`. Serve it with:
+
+```powershell
+uvicorn src.api:app --host 127.0.0.1 --port 8000
+```
+
+Example request:
+
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:8000/predict -Method Post `
+  -ContentType 'application/json' `
+  -Body '{"age":48,"workclass":"Private","education_num":16,"marital_status":"Married-civ-spouse","occupation":"Exec-managerial","relationship":"Husband","capital_gain":15000,"capital_loss":0,"hours_per_week":50,"native_country":"United-States"}'
+```
+
+The API returns a probability, the thresholded prediction, the human-readable label, and the threshold used. Missing fields or invalid ranges are rejected with HTTP 422; the service returns HTTP 503 if the model bundle has not been generated.

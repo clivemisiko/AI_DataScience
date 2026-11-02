@@ -1,0 +1,4 @@
+run_id,run_name,model_type,roc_auc,f1,accuracy,decision_threshold,max_depth,min_samples_leaf,n_estimators,learning_rate,calibration,cv
+3d324b880555494186b9296dbd7a40f4,baseline_logistic,logistic_regression,0.9151130548275934,0.7141590304463494,0.8515277138031629,0.36,,,,,,
+2e8603751806433386a448b156a8183b,random_forest,random_forest,0.9203314907864056,0.7240143369175627,0.8581298940580377,0.36,12.0,2.0,,,,
+f9844bd89524417bb0a6b03ed160822e,calibrated_xgboost,calibrated_xgboost,0.9306353949567693,0.7447852760736197,0.872255489021956,0.36,5.0,,150.0,0.1,isotonic,5.0
