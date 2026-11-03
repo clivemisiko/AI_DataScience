@@ -197,3 +197,7 @@ Invoke-RestMethod -Uri http://127.0.0.1:8000/predict -Method Post `
 ```
 
 The API returns a probability, the thresholded prediction, the human-readable label, and the threshold used. Missing fields or invalid ranges are rejected with HTTP 422; the service returns HTTP 503 if the model bundle has not been generated.
+
+## Track L2: Fairness and Explainability
+
+The SHAP audit notebook and written findings are available in [l2_fairness_explainability.ipynb](l2_fairness_explainability.ipynb) and [l2_fairness_audit_report.md](l2_fairness_audit_report.md). The audit evaluates `sex` and `race` subgroup metrics, explains two individual predictions, checks SHAP additivity, and specifies a support-aware subgroup threshold calibration mitigation.
