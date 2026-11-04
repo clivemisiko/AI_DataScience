@@ -201,3 +201,7 @@ The API returns a probability, the thresholded prediction, the human-readable la
 ## Track L2: Fairness and Explainability
 
 The SHAP audit notebook and written findings are available in [l2_fairness_explainability.ipynb](l2_fairness_explainability.ipynb) and [l2_fairness_audit_report.md](l2_fairness_audit_report.md). The audit evaluates `sex` and `race` subgroup metrics, explains two individual predictions, checks SHAP additivity, and specifies a support-aware subgroup threshold calibration mitigation.
+
+## Track M3: Final Presentation
+
+The final deliverables are [final_report.md](final_report.md) and [final_presentation.pptx](final_presentation.pptx) (12 slides). To deliver the live demo, run `python -m src.mlops`, start the API with `uvicorn src.api:app --host 127.0.0.1 --port 8000`, and send the documented `/predict` request. The final report records the measured results, design rationale, limitations, and responsible-AI mitigation.
